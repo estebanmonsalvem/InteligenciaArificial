@@ -1,0 +1,207 @@
+import numpy as np
+import copy
+
+
+def buscarNodo(node, listCLOSED):
+    for i in range(len(listCLOSED)):
+        if(listCLOSED[i].tablero == node.tablero):
+            return 1
+    return 0
+
+class listaPrioridad():
+
+    def __init__(self):
+        self.list = []
+
+    # Esta funcion recibe un nodo y lo inserta en la lista de la clase
+    # teniendo la funcion de evaluacion como criterio de orden de menor
+    #a mayor.
+    def insert(self, nodo):
+        i = 0
+        for i in range(len(self.list)):
+            if(nodo.funcEval > self.list[i].funcEval):
+                break
+            i += 1
+
+        self.list.insert(i, nodo)
+
+# Funcion generarNodosHijos
+# Esta funcion genera todos lo movimientos posibles a partir de un nodo raiz,
+# para el problema de las N-Reinas.
+# Entradas:
+#    nodo_raiz: Nodo del cual se derivaran los posibles movimientos.
+#    listaOPEN: Lista principal del programa en la cual se encuentran
+#    organizados por prioridad, los nodos que hacen falta por visitar.
+# Salida:
+#    nodos_hijos: Lista con los hijos generados a partir del nodo de entrada.
+
+def generarNodosHijos(nodo_raiz, listaOPEN, listaCLOSED):
+    listaCLOSED.append(nodo_raiz)
+    tablero = nodo_raiz.tablero
+    # Recorremos las 4 filas (tablero 4x4)
+    for i in range(4):
+        # Recorremos las 4 columas
+        for j in range(4):
+            if(tablero[i][j] == 1):
+                if(j == 0):
+                    #generar 1 hijo
+                    hijo = nodo_NReinas(tablero)
+                    hijo.tablero[i] = [0, 1, 0, 0]
+                    if(not(buscarNodo(hijo, listaCLOSED))):
+                        hijo.calc_funcEval()
+                        listaOPEN.insert(hijo)
+
+                    break
+                elif(j == 1):
+                    #generar 2 hijos
+                    hijo = nodo_NReinas(tablero)
+                    hijo.tablero[i] = [1, 0, 0, 0]
+                    if(not(buscarNodo(hijo, listaCLOSED))):
+                        hijo.calc_funcEval()
+                        listaOPEN.insert(hijo)
+
+                    hijo = nodo_NReinas(tablero)
+                    hijo.tablero[i] = [0, 0, 1, 0]
+                    if(not(buscarNodo(hijo, listaCLOSED))):
+                        hijo.calc_funcEval()
+                        listaOPEN.insert(hijo)
+
+                    break
+                elif(j == 2):
+                    #generar 2 hijos
+                    hijo = nodo_NReinas(tablero)
+                    hijo.tablero[i] = [0, 1, 0, 0]
+                    if(not(buscarNodo(hijo, listaCLOSED))):
+                        hijo.calc_funcEval()
+                        listaOPEN.insert(hijo)
+
+                    hijo = nodo_NReinas(tablero)
+                    hijo.tablero[i] = [0, 0, 0, 1]
+                    if(not(buscarNodo(hijo, listaCLOSED))):
+                        hijo.calc_funcEval()
+                        listaOPEN.insert(hijo)
+
+                    break
+
+                else:
+                    #generar 1 hijo
+                    hijo = nodo_NReinas(tablero)
+                    hijo.tablero[i] = [0, 0, 1, 0]
+                    if(not(buscarNodo(hijo, listaCLOSED))):
+                        hijo.calc_funcEval()
+                        listaOPEN.insert(hijo)
+                    break
+
+'''
+Best-First Search for 4-queens problem.
+Author: Pedro Atencio
+Copyright 2017
+'''
+
+class nodo_NReinas():
+
+    def __init__(self, tablero):
+        self.tablero = copy.deepcopy(tablero)
+        self.funcEval = 0
+
+    def calc_funcEval(self):
+        self.calc_conflictos()
+        self.funcEval = self.h
+        
+    def calc_conflictos(self):
+        #contador de conflictos
+        conflictos = 0
+
+        # 1. Encontrar las reinas en el tablero
+        lista_reinas = []
+        for i in range(4):
+            for j in range(4):
+                if(self.tablero[i][j] == 1):
+                    lista_reinas.append([i,j])
+
+        # 2. recorremos las reinas encontradas y verificamos los conflictos (6).
+        # Los conflictos pueden ser arriba-abajo y 4 diagonales
+        for i in range(len(lista_reinas)):
+            fils = lista_reinas[i][0]
+            cols = lista_reinas[i][1]
+
+            #conflictos en el tablero, hacia abajo
+            for y in range(fils + 1, 4):
+                if(self.tablero[y][cols] == 1):
+                    conflictos += 1
+                    break
+            #conflictos en el tablero, hacia arriba
+            for y in range(0, fils - 1):
+                if(self.tablero[y][cols] == 1):
+                    conflictos += 1
+                    break
+            #conflictos en el tablero, diagonal izquerda superior
+            tfils = fils
+            tcols = cols
+            while(tfils > 0 and tcols > 0):
+                tfils -= 1
+                tcols -= 1
+                if(self.tablero[tfils][tcols] == 1):
+                    conflictos += 1
+                    break
+            #conflictos en el tablero, diagonal derecha inferior
+            tfils = fils
+            tcols = cols
+            while(tfils < 3 and tcols < 3):
+                tfils += 1
+                tcols += 1
+                if(self.tablero[tfils][tcols] == 1):
+                    conflictos += 1
+                    break
+            #conflictos en el tablero, diagonal derecha superior
+            tfils = fils
+            tcols = cols
+            while(tfils > 0 and tcols < 3):
+                tfils -= 1
+                tcols += 1
+                if(self.tablero[tfils][tcols] == 1):
+                    conflictos += 1
+                    break
+            #conflictos en el tablero, diagonal izquierda inferior
+            tfils = fils
+            tcols = cols
+            while(tfils < 3 and tcols > 0):
+                tfils += 1
+                tcols -= 1
+                if(self.tablero[tfils][tcols] == 1):
+                    conflictos += 1
+                    break
+
+            self.h = conflictos
+###############################################################################
+# BEST-FS para el problema de las 4-Reinas
+###############################################################################
+def best_fs(nodo_raiz):
+    expand_counter = 0 #contador
+    
+    listaOPEN = listaPrioridad()
+    listaCLOSED = []
+
+    listaOPEN.insert(nodo_raiz)
+
+    while(len(listaOPEN.list) > 0):
+        nodo = listaOPEN.list.pop(0)
+        nodo.calc_conflictos()
+        #print(nodo.tablero)
+        #cero conflictos
+
+        print nodo.tablero, nodo.h
+
+        if(nodo.h == 0):
+            print("se encontro una solucion")
+            print(nodo.tablero, nodo.h) 
+            print "numero de expansiones del arbol: "+str(expand_counter)
+            return
+        
+        expand_counter += 1
+        generarNodosHijos(nodo, listaOPEN, listaCLOSED)
+
+
+tablero_inicial = [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1]]
+nodo_root = nodo_NReinas(tablero_inicial)
+best_fs(nodo_root)
